@@ -25,7 +25,24 @@ def get_listings_from_search_results(html_file):
         ('Loft in Mission District', 210, '1944564'),  # example
     ]
     """
-    pass
+    page = ""
+    with open(html_file, 'r') as f:
+        page = f.read()
+
+    page = BeautifulSoup(page,'html.parser')    
+    html = list(page.children)[2]
+    #class_="g1qv1ctd cb4nyux dir dir-ltr"
+    search_results = list(html.find_all("div", class_="g1qv1ctd cb4nyux dir dir-ltr"))
+
+    listings_list = []
+    for item in search_results:
+        name_tag = item.find("div", "t1jojoys dir dir-ltr")
+        id = name_tag["id"].split("_")[1].strip()
+        name = name_tag.get_text().strip()
+        price = int(item.find("span", class_="_tyxjp1").get_text().split("$")[1].strip())
+        listings_list.append((name, price, id))
+
+    return listings_list
 
 
 def get_listing_information(listing_id):
