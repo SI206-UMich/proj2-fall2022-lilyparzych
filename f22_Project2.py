@@ -1,9 +1,10 @@
-from xml.sax import parseString
-from bs4 import BeautifulSoup
-import re
-import os
 import csv
+import os
+import re
 import unittest
+from xml.sax import parseString
+
+from bs4 import BeautifulSoup
 
 
 def get_listings_from_search_results(html_file):
@@ -25,12 +26,12 @@ def get_listings_from_search_results(html_file):
         ('Loft in Mission District', 210, '1944564'),  # example
     ]
     """
-    page = ""
+    file = ""
     with open(html_file, 'r') as f:
-        page = f.read()
+        file = f.read()
 
-    page = BeautifulSoup(page,'html.parser')    
-    html = list(page.children)[2]
+    file = BeautifulSoup(file,'html.parser')    
+    html = list(file.children)[2]
     #class_="g1qv1ctd cb4nyux dir dir-ltr"
     search_results = list(html.find_all("div", class_="g1qv1ctd cb4nyux dir dir-ltr"))
 
@@ -68,8 +69,45 @@ def get_listing_information(listing_id):
         place type,
         number of bedrooms
     )
+    fhhmddr dir dir-ltr
+    lgx66tx dir dir-ltr
+    _14i3z6h
     """
-    pass
+    page = ""
+    with open("html_files/listing_" + listing_id + ".html", "r") as listing_page:
+        page = listing_page.read()
+    page = BeautifulSoup(page, 'html.parser')
+    #stored in an unordered list, the first li tag contains the info about the policy number
+    policy_tags = page.find("ul", class_="fhhmddr dir dir-ltr").li 
+    policy = policy_tags.get_text()
+    r = re.compile(".*[0-9].*")
+    m = r.match(policy)
+    
+    if m != None:
+        policy = policy.split(":")[1].strip(" ")
+    elif policy.lower().find("pending") != -1:
+        policy = "Pending"
+    else:
+        policy = "Exempt"
+
+    bedroom_tags = page.find(class_="lgx66tx dir dir-ltr")
+    r2 = re.compile(".*[0-9].*")
+    a = r2.match(bedroom_tags.find_all("li")[1].get_text().strip())
+    #no match is 1 ("studio")
+    num_bedrooms = 1
+    if a != None:
+        num_bedrooms = int(a.group(1))
+    
+
+    place_type_tags = page.find(class_="_14i3z6h")
+    place_type_text = place_type_tags.get_text().strip().lower()
+    place_type = "Entire Room"
+    if place_type_text.find("private") != -1:
+        place_type = "Private Room"
+    elif place_type_text.find("shared") != -1:
+        place_type = "Shared Room"
+
+    return policy, place_type, num_bedrooms
 
 
 def get_detailed_listing_database(html_file):
