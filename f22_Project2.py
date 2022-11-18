@@ -158,10 +158,12 @@ def write_csv(data, filename):
 
     This function should not return anything.
     """
-
-
-    
-    pass
+    data.sort(key = lambda x: x[1])
+    with open(filename, "w") as f:
+        c = csv.writer(f)
+        c.writerow(["Listing Title", "Cost", "Listing ID", "Policy Number", "Place Type", "Number of Bedrooms"])
+        for row in data:
+            c.writerow(row)
 
 
 def check_policy_numbers(data):
@@ -183,7 +185,18 @@ def check_policy_numbers(data):
     ]
 
     """
-    pass
+    results = []
+    r1  = re.compile(r"^20.{2}-00[0-9]{4}STR$")
+    r2 = re.compile(r"^STR-000[0-9]{4}$")
+    for listing in data:
+        id = listing [2]
+        policy_num = listing[3]
+        m1 = r1.match(policy_num)
+        m2 = r2.match(policy_num)
+        if m1 == None and m2 == None and policy_num != "Pending" and policy_num != "Exempt":
+            results.append(id)
+    return results
+    
 
 
 def extra_credit(listing_id):
