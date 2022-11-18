@@ -74,7 +74,7 @@ def get_listing_information(listing_id):
     _14i3z6h
     """
     page = ""
-    with open("html_files/listing_" + listing_id + ".html", "r") as listing_page:
+    with open("html_files/listing_"+listing_id+".html", "r") as listing_page:
         page = listing_page.read()
     page = BeautifulSoup(page, 'html.parser')
     #stored in an unordered list, the first li tag contains the info about the policy number
@@ -91,7 +91,7 @@ def get_listing_information(listing_id):
         policy = "Exempt"
 
     bedroom_tags = page.find(class_="lgx66tx dir dir-ltr")
-    r2 = re.compile(".*[0-9].*")
+    r2 = re.compile(".*([0-9]).*")
     a = r2.match(bedroom_tags.find_all("li")[1].get_text().strip())
     #no match is 1 ("studio")
     num_bedrooms = 1
@@ -107,7 +107,7 @@ def get_listing_information(listing_id):
     elif place_type_text.find("shared") != -1:
         place_type = "Shared Room"
 
-    return policy, place_type, num_bedrooms
+    return (policy, place_type, num_bedrooms)
 
 
 def get_detailed_listing_database(html_file):
@@ -124,7 +124,16 @@ def get_detailed_listing_database(html_file):
         ...
     ]
     """
-    pass
+    # listing search results --> title, price, id
+    search_results = get_listings_from_search_results(html_file)
+    detailed_database = []
+    # get listing info --> policy, place type, num rooms
+    for result in search_results:
+        details = get_listing_information(result[2])
+        detailed_database.append(result + details)
+
+
+    return detailed_database
 
 
 def write_csv(data, filename):
@@ -149,6 +158,9 @@ def write_csv(data, filename):
 
     This function should not return anything.
     """
+
+
+    
     pass
 
 
